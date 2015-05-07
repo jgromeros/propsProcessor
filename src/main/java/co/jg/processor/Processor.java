@@ -19,8 +19,8 @@ public class Processor {
     protected static void mergeFiles(String fileName1, String fileName2) {
         PropertiesFileReader fr = new PropertiesFileReader();
         try {
-            Map<String, String> linesBranch = fr.readFile(fileName1);
-            Map<String, String> linesRoot = fr.readFile(fileName2);
+            Map<String, String> linesBranch = fr.readFile(fileName1, "UTF-16BE");
+            Map<String, String> linesRoot = fr.readFile(fileName2, "UTF-16LE");
             Map<String, String> mergedMap = new LinkedHashMap<String, String>();
             for (String key : linesRoot.keySet()) {
                 String rootValue = linesRoot.get(key);
