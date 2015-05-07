@@ -1,7 +1,9 @@
 package co.jg.processor;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -18,22 +20,35 @@ public class Processor {
 
     protected static void mergeFiles(String fileName1, String fileName2) {
         PropertiesFileReader fr = new PropertiesFileReader();
+        Map<String, String> linesBranch = new LinkedHashMap<String, String>();
+        Map<String, String> linesRoot = new LinkedHashMap<String, String>();
         try {
-            Map<String, String> linesBranch = fr.readFile(fileName1, "UTF-16BE");
-            Map<String, String> linesRoot = fr.readFile(fileName2, "UTF-16LE");
-            Map<String, String> mergedMap = new LinkedHashMap<String, String>();
-            for (String key : linesRoot.keySet()) {
+            fr.readFile(fileName1, "UTF-16BE", linesBranch);
+            List<String> keysRoot = fr.readFile(fileName2, "UTF-16LE", linesRoot);
+            List<String> resultingLines = new ArrayList<String>();
+            for (String key : keysRoot) {
                 String rootValue = linesRoot.get(key);
                 String branchValue = linesBranch.get(key);
-                mergedMap.put(key, branchValue == null ? rootValue : branchValue);
-            }
-            for (String key : linesBranch.keySet()) {
-                if (!mergedMap.containsKey(key)) {
-                    String branchValue = linesBranch.get(key);
-                    mergedMap.put(key, branchValue);                    
+                String value = branchValue == null ? rootValue : branchValue;
+                if (value == null) {
+                    resultingLines.add(key);                	
+                } else {
+                	resultingLines.add(key + "=" + value);
                 }
             }
-            fr.writeFile(mergedMap);
+            //Blank line Added to separate the root keys from the customized keys
+            resultingLines.add("");
+            for (String key : linesBranch.keySet()) {
+                if (!linesRoot.containsKey(key)) {
+                    String branchValue = linesBranch.get(key);
+                    if (branchValue == null) {
+                    	resultingLines.add(key);
+                    } else {
+                    	resultingLines.add(key + "=" + branchValue);
+                    }
+                }
+            }
+            fr.writeFile(resultingLines);
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
